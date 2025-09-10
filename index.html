@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Minecraft Server Status</title>
+  <title>Silly Server Status</title>
   <style>
     body { 
       font-family: Arial, sans-serif; 
@@ -17,12 +17,10 @@
       background: #2c2c2c;
       border-radius: 12px;
       padding: 20px;
-      display: inline-block;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
+      display: inline-flex;
+      align-items: flex-start;
       gap: 20px;
-      max-width: 600px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
     #server-icon {
       width: 64px;
@@ -31,42 +29,45 @@
     }
     .info {
       text-align: left;
-      flex: 1;
     }
     #timer {
       margin-top: 5px;
       font-size: 14px;
       color: #bbb;
     }
-    pre {
-      background: #1a1a1a;
-      padding: 10px;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-size: 12px;
+    #player-list {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ddd;
+    }
+    #player-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 5px 0 0;
+    }
+    #player-list li {
+      background: #3a3a3a;
+      margin: 2px 0;
+      padding: 4px 8px;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <!-- 🔥 Icono dinámico -->
-    <img id="server-icon" src="" alt="Server Icon">
+    <!-- 🔥 Icono fijo -->
+    <img id="server-icon" src="icon.png" alt="Server Icon">
     
-    <!-- 🔥 Info de la API -->
+    <!-- 🔥 Info -->
     <div class="info">
-      <h1 id="server-name">Minecraft Server</h1>
+      <h1 id="server-name">Silly Server</h1>
       <p id="status">Checking status...</p>
       <p id="players"></p>
       <p id="version"></p>
-      <p id="motd"></p>
-      <p id="ipport"></p>
       <p id="timer"></p>
+      <div id="player-list"></div>
     </div>
   </div>
-
-  <!-- Extra: Mostrar toda la respuesta JSON -->
-  <h3>📜 Raw API Response</h3>
-  <pre id="raw"></pre>
 
   <script>
     const API_URL = "https://api.mcsrvstat.us/2/now-doc.gl.joinmc.link";
@@ -78,14 +79,10 @@
         const res = await fetch(API_URL);
         const data = await res.json();
 
-        document.getElementById("raw").textContent = JSON.stringify(data, null, 2);
-
         const statusEl = document.getElementById("status");
         const playersEl = document.getElementById("players");
         const versionEl = document.getElementById("version");
-        const motdEl = document.getElementById("motd");
-        const ipportEl = document.getElementById("ipport");
-        const iconEl = document.getElementById("server-icon");
+        const playerListEl = document.getElementById("player-list");
 
         if (data.online) {
           statusEl.textContent = "🟢 Online";
@@ -93,24 +90,24 @@
 
           playersEl.textContent = `Players: ${data.players.online}/${data.players.max}`;
           versionEl.textContent = `Version: ${data.version || "Unknown"}`;
-          motdEl.textContent = `MOTD: ${data.motd?.clean?.join(" ") || "None"}`;
-          ipportEl.textContent = `IP: ${data.ip}:${data.port}`;
 
-          // Icono dinámico
-          if (data.icon) {
-            iconEl.src = data.icon;
+          // Show player usernames
+          if (data.players.list && data.players.list.length > 0) {
+            let html = "<strong>Online Players:</strong><ul>";
+            data.players.list.forEach(p => {
+              html += `<li>${p.name}</li>`;
+            });
+            html += "</ul>";
+            playerListEl.innerHTML = html;
           } else {
-            iconEl.src = "https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/56/Grass_Block_JE3_BE3.png"; // fallback
+            playerListEl.innerHTML = "<em>No players online</em>";
           }
-
         } else {
           statusEl.textContent = "🔴 Offline";
           statusEl.className = "offline";
           playersEl.textContent = "";
           versionEl.textContent = "";
-          motdEl.textContent = "";
-          ipportEl.textContent = "";
-          iconEl.src = "";
+          playerListEl.innerHTML = "";
         }
       } catch {
         document.getElementById("status").textContent = "Error checking status.";
