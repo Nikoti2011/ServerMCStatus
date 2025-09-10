@@ -1,0 +1,73 @@
+body {
+  background: #121212;
+  color: white;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.card {
+  background: #1e1e1e;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  max-width: 900px;
+  width: 100%;
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.card-content {
+  display: grid;
+  grid-template-columns: 150px auto 200px;
+  gap: 20px;
+  align-items: center;
+}
+
+.server-icon img {
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.server-info p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.status-dot {
+  font-size: 18px;
+}
+
+.player-list {
+  background: #2a2a2a;
+  padding: 10px;
+  border-radius: 8px;
+  min-height: 150px;
+}
+
+.player-list h3 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.player-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-list li {
+  background: #3a3a3a;
+  margin: 5px 0;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+}
