@@ -22,6 +22,7 @@
       display: flex;
       align-items: center;
       gap: 20px;
+      max-width: 600px;
     }
     #server-icon {
       width: 64px;
@@ -30,48 +31,86 @@
     }
     .info {
       text-align: left;
+      flex: 1;
     }
     #timer {
       margin-top: 5px;
       font-size: 14px;
       color: #bbb;
     }
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <!-- 🔥 Icono a la izquierda -->
-    <img id="server-icon" src="server-icon.png" alt="Server Icon">
+    <!-- 🔥 Icono dinámico -->
+    <img id="server-icon" src="" alt="Server Icon">
     
-    <!-- 🔥 Info a la derecha -->
+    <!-- 🔥 Info de la API -->
     <div class="info">
-      <h1>Silly Server</h1>
+      <h1 id="server-name">Minecraft Server</h1>
       <p id="status">Checking status...</p>
       <p id="players"></p>
+      <p id="version"></p>
+      <p id="motd"></p>
+      <p id="ipport"></p>
       <p id="timer"></p>
     </div>
   </div>
 
+  <!-- Extra: Mostrar toda la respuesta JSON -->
+  <h3>📜 Raw API Response</h3>
+  <pre id="raw"></pre>
+
   <script>
+    const API_URL = "https://api.mcsrvstat.us/2/now-doc.gl.joinmc.link";
     const REFRESH_INTERVAL = 60; // segundos
     let timeLeft = REFRESH_INTERVAL;
 
     async function checkStatus() {
       try {
-        const res = await fetch("https://api.mcsrvstat.us/2/now-doc.gl.joinmc.link");
+        const res = await fetch(API_URL);
         const data = await res.json();
+
+        document.getElementById("raw").textContent = JSON.stringify(data, null, 2);
 
         const statusEl = document.getElementById("status");
         const playersEl = document.getElementById("players");
+        const versionEl = document.getElementById("version");
+        const motdEl = document.getElementById("motd");
+        const ipportEl = document.getElementById("ipport");
+        const iconEl = document.getElementById("server-icon");
 
         if (data.online) {
           statusEl.textContent = "🟢 Online";
           statusEl.className = "online";
+
           playersEl.textContent = `Players: ${data.players.online}/${data.players.max}`;
+          versionEl.textContent = `Version: ${data.version || "Unknown"}`;
+          motdEl.textContent = `MOTD: ${data.motd?.clean?.join(" ") || "None"}`;
+          ipportEl.textContent = `IP: ${data.ip}:${data.port}`;
+
+          // Icono dinámico
+          if (data.icon) {
+            iconEl.src = data.icon;
+          } else {
+            iconEl.src = "https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/56/Grass_Block_JE3_BE3.png"; // fallback
+          }
+
         } else {
           statusEl.textContent = "🔴 Offline";
           statusEl.className = "offline";
           playersEl.textContent = "";
+          versionEl.textContent = "";
+          motdEl.textContent = "";
+          ipportEl.textContent = "";
+          iconEl.src = "";
         }
       } catch {
         document.getElementById("status").textContent = "Error checking status.";
