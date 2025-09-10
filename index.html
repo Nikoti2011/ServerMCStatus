@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Silly Server Status</title>
+  <title>Minecraft Server Status</title>
   <style>
     body { 
       font-family: Arial, sans-serif; 
@@ -19,40 +19,81 @@
       padding: 20px;
       display: inline-block;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    #server-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+    }
+    .info {
+      text-align: left;
+    }
+    #timer {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #bbb;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Silly Server</h1>
-    <p id="status">Checking status...</p>
-    <p id="players"></p>
+    <!-- 🔥 Icono a la izquierda -->
+    <img id="server-icon" src="server-icon.png" alt="Server Icon">
+    
+    <!-- 🔥 Info a la derecha -->
+    <div class="info">
+      <h1>My Fabric Server</h1>
+      <p id="status">Checking status...</p>
+      <p id="players"></p>
+      <p id="timer"></p>
+    </div>
   </div>
 
   <script>
+    const REFRESH_INTERVAL = 60; // segundos
+    let timeLeft = REFRESH_INTERVAL;
+
     async function checkStatus() {
       try {
         const res = await fetch("https://api.mcsrvstat.us/2/now-doc.gl.joinmc.link");
         const data = await res.json();
+
         const statusEl = document.getElementById("status");
         const playersEl = document.getElementById("players");
 
         if (data.online) {
-          statusEl.textContent = "✅ Server is Online!";
+          statusEl.textContent = "🟢 Online";
           statusEl.className = "online";
           playersEl.textContent = `Players: ${data.players.online}/${data.players.max}`;
         } else {
-          statusEl.textContent = "❌ Server is Offline!";
+          statusEl.textContent = "🔴 Offline";
           statusEl.className = "offline";
           playersEl.textContent = "";
         }
-      } catch (err) {
-        document.getElementById("status").textContent = "⚠️ Error checking status";
+      } catch {
+        document.getElementById("status").textContent = "Error checking status.";
+        document.getElementById("status").className = "offline";
       }
     }
 
+    function startTimer() {
+      const timerEl = document.getElementById("timer");
+      setInterval(() => {
+        if (timeLeft <= 0) {
+          checkStatus();
+          timeLeft = REFRESH_INTERVAL;
+        }
+        timerEl.textContent = `⏳ Refresh in: ${timeLeft}s`;
+        timeLeft--;
+      }, 1000);
+    }
+
+    // Inicial
     checkStatus();
-    setInterval(checkStatus, 60000); // refresca cada minuto
+    startTimer();
   </script>
 </body>
 </html>
