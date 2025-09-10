@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Minecraft Server Status</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      margin-top: 50px; 
+      background: #1e1e1e;
+      color: #f5f5f5;
+    }
+    .online { color: #4caf50; font-weight: bold; }
+    .offline { color: #f44336; font-weight: bold; }
+    .card {
+      background: #2c2c2c;
+      border-radius: 12px;
+      padding: 20px;
+      display: inline-block;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>My Fabric Server</h1>
+    <p id="status">Checking status...</p>
+    <p id="players"></p>
+  </div>
+
+  <script>
+    async function checkStatus() {
+      try {
+        const res = await fetch("https://api.mcsrvstat.us/2/now-doc.gl.joinmc.link");
+        const data = await res.json();
+        const statusEl = document.getElementById("status");
+        const playersEl = document.getElementById("players");
+
+        if (data.online) {
+          statusEl.textContent = "✅ Server is Online!";
+          statusEl.className = "online";
+          playersEl.textContent = `Players: ${data.players.online}/${data.players.max}`;
+        } else {
+          statusEl.textContent = "❌ Server is Offline!";
+          statusEl.className = "offline";
+          playersEl.textContent = "";
+        }
+      } catch (err) {
+        document.getElementById("status").textContent = "⚠️ Error checking status";
+      }
+    }
+
+    checkStatus();
+    setInterval(checkStatus, 60000); // refresca cada minuto
+  </script>
+</body>
+</html>
