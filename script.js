@@ -1,56 +1,104 @@
-const API_URL = "https://api.mcsrvstat.us/2/now-doc.gl.joinmc.link";
+const SERVER_ADDRESS = "slimoncraft.playminecraft.online";
+const API_URL = `https://api.mcsrvstat.us/3/${encodeURIComponent(SERVER_ADDRESS)}`;
+const ICON_URL = `https://api.mcsrvstat.us/icon/${encodeURIComponent(SERVER_ADDRESS)}`;
+const REFRESH_SECONDS = 60;
 
-async function fetchStatus() {
-  try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
+const nameEl = document.getElementById("server-name");
+const motdEl = document.getElementById("server-motd");
+const iconEl = document.getElementById("server-icon");
+const infoEl = document.getElementById("server-info");
+const playerListEl = document.getElementById("online-players");
+const timerEl = document.getElementById("timer");
 
-    // Status
-    const statusEl = document.getElementById("status");
-    if (data.online) {
-      statusEl.innerHTML = `<span class="status-dot" style="color:lime;">🟢</span> Online`;
-    } else {
-      statusEl.innerHTML = `<span class="status-dot" style="color:red;">🔴</span> Offline`;
-    }
+function addDetail(label, value) {
+  if (value === undefined || value === null || value === "") return;
 
-    // Players
-    document.getElementById("players").textContent =
-      `Players: ${data.players?.online || 0}/${data.players?.max || "?"}`;
+  const row = document.createElement("p");
+  const labelEl = document.createElement("strong");
+  labelEl.textContent = `${label}: `;
+  row.append(labelEl, document.createTextNode(String(value)));
+  infoEl.appendChild(row);
+}
 
-    // Version
-    document.getElementById("version").textContent =
-      `Version: ${data.version || "Unknown"}`;
+function getMotd(data) {
+  const motd = data.motd?.clean ?? data.motd?.raw;
+  if (Array.isArray(motd)) return motd.join(" ").trim();
+  return typeof motd === "string" ? motd.trim() : "";
+}
 
-    // Online Players List
-    const playerListEl = document.getElementById("online-players");
-    playerListEl.innerHTML = ""; // clear old list
+function getPlayers(data) {
+  const players = data.players?.list ?? [];
+  return players.map((player) => typeof player === "string" ? player : player.name).filter(Boolean);
+}
 
-    if (data.players?.list && data.players.list.length > 0) {
-      data.players.list.forEach(player => {
-        const li = document.createElement("li");
-        li.textContent = player; // player names come from API
-        playerListEl.appendChild(li);
-      });
-    } else {
-      playerListEl.innerHTML = `<li>No players online</li>`;
-    }
-  } catch (err) {
-    console.error("Error fetching status:", err);
-    document.getElementById("status").innerHTML =
-      `<span class="status-dot" style="color:gray;">⚪</span> Error`;
+function renderStatus(data) {
+  const address = data.hostname || data.ip || SERVER_ADDRESS;
+  const motd = getMotd(data);
+  // The API has no dedicated display-name field, so show its reported hostname
+  // as the heading and its server MOTD as the description.
+  nameEl.textContent = data.hostname || address;
+  motdEl.textContent = motd;
+  document.title = `${nameEl.textContent} · Minecraft Server Status`;
+
+  iconEl.src = data.icon || ICON_URL;
+  iconEl.hidden = false;
+
+  infoEl.replaceChildren();
+  const status = document.createElement("p");
+  const statusLabel = document.createElement("strong");
+  statusLabel.textContent = "Status: ";
+  status.append(statusLabel, document.createTextNode(data.online ? "Online" : "Offline"));
+  status.className = data.online ? "is-online" : "is-offline";
+  infoEl.appendChild(status);
+
+  if (data.players) {
+    addDetail("Players", `${data.players.online ?? 0}/${data.players.max ?? "?"}`);
+  }
+  addDetail("Address", address);
+  addDetail("Port", data.port);
+  addDetail("Version", data.version);
+  addDetail("Software", data.software);
+
+  playerListEl.replaceChildren();
+  const names = getPlayers(data);
+  if (names.length) {
+    names.forEach((name) => {
+      const item = document.createElement("li");
+      item.textContent = name;
+      playerListEl.appendChild(item);
+    });
+  } else {
+    const item = document.createElement("li");
+    item.textContent = data.online ? "No players online" : "Server is offline";
+    playerListEl.appendChild(item);
   }
 }
 
-// Auto refresh + countdown
-let countdown = 60;
-setInterval(() => {
-  if (countdown <= 0) {
-    fetchStatus();
-    countdown = 60;
+async function fetchStatus() {
+  try {
+    const response = await fetch(API_URL, { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error(`Status API returned ${response.status}`);
+    renderStatus(await response.json());
+  } catch (error) {
+    console.error("Could not fetch Minecraft server status:", error);
+    nameEl.textContent = SERVER_ADDRESS;
+    motdEl.textContent = "Server details are temporarily unavailable.";
+    infoEl.replaceChildren();
+    const status = document.createElement("p");
+    status.className = "is-unknown";
+    status.textContent = "Status: unavailable";
+    infoEl.appendChild(status);
   }
-  document.getElementById("timer").textContent = countdown;
-  countdown--;
+}
+
+let countdown = REFRESH_SECONDS;
+setInterval(() => {
+  countdown -= 1;
+  if (countdown <= 0) {
+    countdown = REFRESH_SECONDS;
+    fetchStatus();
+  }
+  timerEl.textContent = countdown;
 }, 1000);
 
-// Initial fetch
 fetchStatus();

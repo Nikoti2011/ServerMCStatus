@@ -7,34 +7,24 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <div class="card-header">
-      <h1 id="server-name">Silly Server</h1>
-    </div>
-
-    <div class="card-content">
-      <!-- Left Column: Icon -->
-      <div class="server-icon">
-        <img src="icon.png" alt="Server Icon" id="server-icon">
+  <main class="card" aria-live="polite">
+    <header class="card-header">
+      <img id="server-icon" class="server-icon" alt="Minecraft server icon" hidden>
+      <div>
+        <h1 id="server-name">Loading server…</h1>
+        <p id="server-motd" class="server-motd"></p>
       </div>
+    </header>
 
-      <!-- Middle Column: Status & Info -->
-      <div class="server-info">
-        <p id="status"><span class="status-dot">⚪</span> Checking...</p>
-        <p id="players">Players: ?/?</p>
-        <p>IP: now-doc.gl.joinmc.link</p>
-        <p id="version">Version: ?</p>
-        <p id="refresh">⏳ Refresh in: <span id="timer">60</span>s</p>
-      </div>
-
-      <!-- Right Column: Online Players -->
-      <div class="player-list">
-        <h3>Online Players</h3>
+    <section class="card-content">
+      <div id="server-info" class="server-info" aria-label="Server details"></div>
+      <section class="player-list" aria-labelledby="players-title">
+        <h2 id="players-title">Online players</h2>
         <ul id="online-players"></ul>
-      </div>
-    </div>
-  </div>
-
+      </section>
+    </section>
+    <p id="refresh" class="refresh">Refreshing in <span id="timer">60</span>s</p>
+  </main>
   <script src="script.js"></script>
 </body>
 </html>
